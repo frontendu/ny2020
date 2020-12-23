@@ -86,7 +86,8 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
   }, [
     Number.parseInt(locationCurrentTime || '') > 0, 
     Number.parseInt(locationTrack || '') > 0,
-    currentTrack
+    currentTrack,
+    isFromLocation
   ]);
 
   useEffect(() => {
