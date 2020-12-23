@@ -7,3 +7,10 @@
   height: 100%;
   scroll-snap-type: x mandatory;
 }
+
+@media (min-width: 768px) {
+  .Playlist {
+    flex-direction: column;
+    scroll-snap-type: y mandatory;
+  }
+}

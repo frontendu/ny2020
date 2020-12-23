@@ -1,8 +1,10 @@
 import { createContext, useCallback, useRef, useState, PropsWithChildren, useEffect } from 'react';
+import noop from 'lodash/noop';
 
 import { default as Data } from 'data/playlist.json';
 import { TrackDto } from 'dto/Track';
 import { generateColor } from 'generateColor';
+import { useQueryParam } from 'hocs/useQueryParam';
 
 const Tracks: TrackDto[] = Data;
 
@@ -25,9 +27,8 @@ type PlayerContextEntity = {
   toggle: () => void;
   increasePlaybackRate: () => void;
   changeCurrentTime: (newValue: number) => void;
+  closeTrack: () => void;
 };
-
-const noop = () => void 0;
 
 export const PlayerContext = createContext<PlayerContextEntity>({
   tracks: [],
@@ -41,7 +42,8 @@ export const PlayerContext = createContext<PlayerContextEntity>({
   pause: noop,
   toggle: noop,
   increasePlaybackRate: noop,
-  changeCurrentTime: noop
+  changeCurrentTime: noop,
+  closeTrack: noop
 });
 
 const PLAYBACK_RATES = [
@@ -53,6 +55,8 @@ const PLAYBACK_RATES = [
 ];
 
 export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
+  const [locationCurrentTime, setLocationCurrentTime] = useQueryParam('currentTime');
+  const [locationTrack] = useQueryParam('track');
   const audio = useRef(new Audio);
   const idxTimer = useRef<number>(-1);
   const [tracks] = useState(Tracks.map(track => ({
@@ -66,6 +70,14 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
   const [isPlayed, setIsPlayed] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [currentTrack, setCurrentTrack] = useState<TrackEntity | null>(null);
+
+  useEffect(() => {
+    if (locationCurrentTime && locationTrack) {
+      changeTrack(tracks[Number.parseInt(locationTrack)], false)
+      changeCurrentTime(Number.parseInt(locationCurrentTime));
+      setCurrentTime(Number.parseInt(locationCurrentTime));
+    }
+  }, [Number.parseInt(locationCurrentTime || '') > 0, locationTrack]);
 
   useEffect(() => {
     if (!isPlayed) {
@@ -119,7 +131,7 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
     isPlayed ? pause() : play(); 
   }, [isPlayed, pause, play]);
 
-  const changeTrack = useCallback((track?: TrackEntity) => {
+  const changeTrack = useCallback((track?: TrackEntity, autoplay: boolean = true) => {
     if (!track) {
       return;
     }
@@ -133,13 +145,19 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
       preload: true
     });
 
-    play();
+    autoplay && play();
   }, [isPlayed, setCurrentTrack, play, pause]);
 
   const changeCurrentTime = useCallback((currentTime: number) => {
+    setLocationCurrentTime(currentTime.toString());
+    setCurrentTime(currentTime);
     audio.current.currentTime = currentTime;
-    play();
   }, [])
+
+  const closeTrack = useCallback(() => {
+    pause();
+    setCurrentTrack(null);
+  }, [pause])
 
   return (
     <PlayerContext.Provider value={{
@@ -154,7 +172,8 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
       play,
       toggle,
       increasePlaybackRate,
-      changeCurrentTime
+      changeCurrentTime,
+      closeTrack
     }}>
       {children}
     </PlayerContext.Provider>
