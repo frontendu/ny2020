@@ -114,7 +114,7 @@ export function Player() {
 
   const onClickTitle = useCallback(() => {
     setLocationTrack(tracks.findIndex(track => track.order === currentTrack?.order).toString());
-  }, []);
+  }, [currentTrack]);
 
   if (!currentTrack) {
     return null;
