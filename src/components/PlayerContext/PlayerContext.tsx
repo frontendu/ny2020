@@ -136,6 +136,11 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
       return;
     }
 
+    if (currentTrack?.order === track.order) {
+      toggle();
+      return;
+    }
+
     setCurrentTrack(track);
     pause();
 
@@ -146,7 +151,7 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
     });
 
     autoplay && play();
-  }, [isPlayed, setCurrentTrack, play, pause]);
+  }, [isPlayed, currentTrack, setCurrentTrack, play, pause]);
 
   const changeCurrentTime = useCallback((currentTime: number) => {
     setLocationCurrentTime(currentTime.toString());
