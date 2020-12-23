@@ -27,6 +27,11 @@
 
 .Player__TrackTitle {
   cursor: pointer;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 80%;
+  overflow: hidden;
 }
 
 .Player__Icon {
