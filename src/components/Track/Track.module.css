@@ -49,4 +49,13 @@
   height: 40%;
   clip-path: polygon(10% 0, 10% 100%, 90% 50%);
   font-size: 92px;
+  transition: transform 0.3s;
+}
+
+.Track__Play:hover {
+  transform: scale(1.2);
+}
+
+.Track__Play:active {
+  transform: translateX(10px) translateY(10px);
 }
