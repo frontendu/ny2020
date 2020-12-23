@@ -56,7 +56,7 @@ const PLAYBACK_RATES = [
 
 export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
   const [locationCurrentTime, setLocationCurrentTime] = useQueryParam('currentTime');
-  const [locationTrack] = useQueryParam('track');
+  const [locationTrack, setLocationTrack] = useQueryParam('track');
   const audio = useRef(new Audio);
   const idxTimer = useRef<number>(-1);
   const [tracks] = useState(Tracks.map(track => ({
@@ -70,14 +70,24 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
   const [isPlayed, setIsPlayed] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [currentTrack, setCurrentTrack] = useState<TrackEntity | null>(null);
+  const [isFromLocation, setIsFromLocation] = useState(false);
 
   useEffect(() => {
-    if (locationCurrentTime && locationTrack) {
+    if (isFromLocation) {
+      return;
+    }
+
+    if (locationCurrentTime && locationTrack && !currentTrack) {
       changeTrack(tracks[Number.parseInt(locationTrack)], false)
       changeCurrentTime(Number.parseInt(locationCurrentTime));
       setCurrentTime(Number.parseInt(locationCurrentTime));
+      setIsFromLocation(true);
     }
-  }, [Number.parseInt(locationCurrentTime || '') > 0, locationTrack]);
+  }, [
+    Number.parseInt(locationCurrentTime || '') > 0, 
+    Number.parseInt(locationTrack || '') > 0,
+    currentTrack
+  ]);
 
   useEffect(() => {
     if (!isPlayed) {
@@ -141,6 +151,8 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
       return;
     }
 
+    setLocationTrack(tracks.findIndex(t => t.order === track.order).toString());
+    setLocationCurrentTime('');
     setCurrentTrack(track);
     pause();
 
@@ -151,7 +163,7 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
     });
 
     autoplay && play();
-  }, [isPlayed, currentTrack, setCurrentTrack, play, pause]);
+  }, [isPlayed, currentTrack, setCurrentTrack, play, pause, playbackRate]);
 
   const changeCurrentTime = useCallback((currentTime: number) => {
     setLocationCurrentTime(currentTime.toString());
