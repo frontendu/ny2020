@@ -1,0 +1,9 @@
+.Playlist {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow: auto;
+  flex: none;
+  width: 100%;
+  height: 100%;
+  scroll-snap-type: x mandatory;
+}
