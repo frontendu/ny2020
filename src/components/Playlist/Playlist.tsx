@@ -1,31 +1,20 @@
-import { default as Data } from 'data/playlist.json';
-import { useCallback, useRef } from 'react';
+import { useCallback, useContext } from 'react';
 
-import { TrackDto } from 'dto/Track';
 import { Track } from 'components/Track/Track';
 import { default as Styles } from 'components/Playlist/Playlist.module.css';
-
-const Tracks: TrackDto[] = Data;
+import { PlayerContext } from 'components/PlayerContext/PlayerContext';
 
 export function Playlist() {
-  const audio = useRef(new Audio);
+  const { tracks, changeTrack, currentTrack } = useContext(PlayerContext)
 
-  const onClick = useCallback((url: string) => {
-    if (!audio.current.paused) {
-      audio.current.pause();
-    }
-
-    audio.current = Object.assign(new Audio(), {
-      src: url
-    });
-
-    audio.current.play();
-  }, []);
+  const onClick = useCallback((order: number) => {
+    changeTrack(tracks.find(track => track.order === order));
+  }, [changeTrack, tracks]);
 
   return (
     <div className={Styles.Playlist}>
-      {Tracks.map(track => (
-        <Track key={track.order} track={track} onClick={onClick} />
+      {tracks.map(track => (
+        <Track key={track.order} track={track} onClick={onClick} isCurrent={currentTrack?.order === track.order} />
       ))}
     </div>
   );

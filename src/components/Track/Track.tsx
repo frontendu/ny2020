@@ -1,12 +1,10 @@
-import { useState } from 'react';
-
-import { generateColor } from 'generateColor';
-import { TrackDto } from 'dto/Track';
 import Styles from 'components/Track/Track.module.css';
+import { TrackEntity } from 'components/PlayerContext/PlayerContext';
 
 type TrackProps = {
-  track: TrackDto;
-  onClick: (url: string) => void;
+  track: TrackEntity;
+  isCurrent: boolean;
+  onClick: (order: number) => void;
 }
 
 export function Track({
@@ -14,23 +12,19 @@ export function Track({
     order,
     greeting,
     emoji,
-    url,
+    backgroundColor,
+    greetingColor,
+    playColor
   },
-
+  isCurrent,
   onClick
 }: TrackProps) {
-  const [[backgroundColor, greetingColor, playColor]] = useState(() => ([
-    generateColor(),
-    generateColor(),
-    generateColor()
-  ]));
-
   return (
     <div className={Styles.Track}>
-      <div className={Styles.Track__Box} style={{backgroundColor}}>
+      <div className={[Styles.Track__Box, isCurrent && Styles.Track__Box_Current].join(' ')} style={{backgroundColor}}>
         <div className={Styles.Track__Order}>{order}</div>
         <div className={Styles.Track__Greeting} style={{backgroundColor: greetingColor}}>{greeting}</div>
-        <div className={Styles.Track__Play} style={{backgroundColor: playColor}} onClick={() => onClick(url)}>{emoji}</div>
+        <div className={Styles.Track__Play} style={{backgroundColor: playColor}} onClick={() => onClick(order)}>{emoji}</div>
       </div>
     </div>
   )
