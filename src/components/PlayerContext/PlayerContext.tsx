@@ -14,13 +14,20 @@ export type TrackEntity = TrackDto & {
   greetingColor: string;
 }
 
+export enum PlayerState {
+  INITIAL,
+  PAUSE,
+  PLAYING
+};
+
+
 type PlayerContextEntity = {
   tracks: TrackEntity[];
   currentTrack: TrackEntity | null;
   currentTime: number;
   currentEndTime: number;
   changeTrack: (track?: TrackEntity) => void;
-  isPlayed: boolean;
+  playerState: PlayerState;
   playbackRate: number;
   play: () => void;
   pause: () => void;
@@ -35,7 +42,7 @@ export const PlayerContext = createContext<PlayerContextEntity>({
   currentTrack: null,
   currentTime: 0,
   currentEndTime: 0,
-  isPlayed: false,
+  playerState: PlayerState.INITIAL,
   playbackRate: 1,
   changeTrack: noop,
   play: noop,
@@ -67,7 +74,7 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
   })));
   const [currentTime, setCurrentTime] = useState(0);
   const [currentEndTime, setCurrentEndTime] = useState(0);
-  const [isPlayed, setIsPlayed] = useState(false);
+  const [playerState, setPlayerState] = useState(PlayerState.INITIAL);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [currentTrack, setCurrentTrack] = useState<TrackEntity | null>(null);
   const [isFromLocation, setIsFromLocation] = useState(false);
@@ -79,7 +86,7 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
 
     if (locationCurrentTime && locationTrack && !currentTrack) {
       changeTrack(tracks[Number.parseInt(locationTrack)], false)
-      changeCurrentTime(Number.parseInt(locationCurrentTime));
+      changeCurrentTime(Number.parseInt(locationCurrentTime), true);
       setCurrentTime(Number.parseInt(locationCurrentTime));
       setIsFromLocation(true);
     }
@@ -91,7 +98,7 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
   ]);
 
   useEffect(() => {
-    if (!isPlayed) {
+    if (playerState !== PlayerState.PLAYING) {
       return;
     };
 
@@ -105,7 +112,7 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
     }, 200);
 
     return () => clearInterval(idxTimer.current);
-  }, [isPlayed]);
+  }, [playerState]);
 
   const onLoadMetadata = useCallback(() => {
     setCurrentEndTime(audio.current.duration)
@@ -129,18 +136,26 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
   }, [playbackRate]);
 
   const play = useCallback(() => {
-    audio.current.play();
-    setIsPlayed(true);
-  }, [isPlayed, setIsPlayed]);
+    if (playerState !== PlayerState.INITIAL) {
+      audio.current.play();
+      setPlayerState(PlayerState.PLAYING);
+    }
+
+    audio.current.addEventListener('canplay', () => {
+      audio.current.currentTime = currentTime;
+      audio.current.play();
+      setPlayerState(PlayerState.PLAYING);
+    }, { once: true })
+  }, [playerState, setPlayerState, currentTime]);
 
   const pause = useCallback(() => {
     audio.current.pause();
-    setIsPlayed(false);
-  }, [isPlayed, setIsPlayed]);
+    setPlayerState(PlayerState.PAUSE);
+  }, [playerState, setPlayerState]);
 
   const toggle = useCallback(() => {
-    isPlayed ? pause() : play(); 
-  }, [isPlayed, pause, play]);
+    playerState === PlayerState.PLAYING ? pause() : play(); 
+  }, [playerState, pause, play]);
 
   const changeTrack = useCallback((track?: TrackEntity, autoplay: boolean = true) => {
     if (!track) {
@@ -164,12 +179,18 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
     });
 
     autoplay && play();
-  }, [isPlayed, currentTrack, setCurrentTrack, play, pause, playbackRate]);
+  }, [playerState, currentTrack, setCurrentTrack, play, pause, playbackRate]);
 
-  const changeCurrentTime = useCallback((currentTime: number) => {
+  const changeCurrentTime = useCallback((currentTime: number, isFirstTime: boolean = false) => {
     setLocationCurrentTime(currentTime.toString());
     setCurrentTime(currentTime);
     audio.current.currentTime = currentTime;
+
+    if (isFirstTime) {
+      audio.current.addEventListener('canplay', () => {
+        audio.current.currentTime = currentTime;
+      }, { once: true })
+    }
   }, [])
 
   const closeTrack = useCallback(() => {
@@ -183,7 +204,7 @@ export const PlayerProvider = ({children}: PropsWithChildren<{}>) => {
       currentTrack,
       currentTime,
       currentEndTime,
-      isPlayed,
+      playerState,
       playbackRate,
       changeTrack,
       pause,

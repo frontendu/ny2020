@@ -14,12 +14,12 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import tap from 'lodash/tap';
 
 import { default as Styles } from 'components/Player/Player.module.css';
-import { PlayerContext } from 'components/PlayerContext/PlayerContext';
+import { PlayerContext, PlayerState } from 'components/PlayerContext/PlayerContext';
 import { useQueryParam } from 'hocs/useQueryParam';
 
 export function Player() {
   const {
-    isPlayed,
+    playerState,
     playbackRate, 
     toggle,
     currentTrack,
@@ -42,7 +42,7 @@ export function Player() {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const onClickControl = useCallback(() => {
     toggle();
-  }, [toggle, isPlayed]);
+  }, [toggle]);
 
   const toggleShareDialog = useCallback(() => {
     setIsShareDialogOpen(state => !state);
@@ -138,7 +138,7 @@ export function Player() {
           </div>
           <div className={Styles.Player__Controls}>
             <div 
-              className={[Styles.Player__Control, isPlayed && Styles.Player__Control_Pause].join(' ')}
+              className={[Styles.Player__Control, playerState === PlayerState.PLAYING && Styles.Player__Control_Pause].join(' ')}
               style={{ borderColor: `transparent transparent transparent ${playColor}`}}
               onClick={onClickControl}
             />

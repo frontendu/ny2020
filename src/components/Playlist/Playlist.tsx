@@ -7,7 +7,7 @@ import { useQueryParam } from 'hocs/useQueryParam';
 
 export function Playlist() {
   const playlistRef = useRef<HTMLDivElement>(null);
-  const { tracks, changeTrack, currentTrack, isPlayed } = useContext(PlayerContext)
+  const { tracks, changeTrack, currentTrack } = useContext(PlayerContext)
   const [ locationTrack ] = useQueryParam('track');
 
   const onClick = useCallback((order: number) => {
