@@ -334,5 +334,12 @@
     "greeting": "Охуевший",
     "url": "https://feeds.soundcloud.com/stream/950093008-frontend_u-e167.mp3",
     "length": 68067284
+  },
+  {
+    "order": 168,
+    "emoji": "🗺",
+    "greeting": "Международный",
+    "url": "https://feeds.soundcloud.com/stream/954688291-frontend_u-e168.mp3",
+    "length": 84934078
   }
 ]
